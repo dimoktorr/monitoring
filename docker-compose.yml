@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  example_databases:
+    container_name: example_databases
+    image: postgres:12.4
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: 'example'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: '123'
+    ports:
+      - "5432:5432"
+    networks:
+      example_net:
+        aliases:
+          - example_postgres
+
+  example_redis:
+    container_name: example_redis
+    image: bitnami/redis-cluster:latest
+    ports:
+      - "6379:6379"
+    environment:
+      ALLOW_EMPTY_PASSWORD: yes
+      REDIS_CLUSTER_REPLICAS: 0
+      REDIS_NODES: 127.0.0.1 127.0.0.1 127.0.0.1
+      REDIS_CLUSTER_CREATOR: yes
+      REDIS_CLUSTER_DYNAMIC_IPS: no
+      REDIS_CLUSTER_ANNOUNCE_IP: 127.0.0.1
+    networks:
+      example_net:
+        aliases:
+          - example_redis
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.39
+    container_name: example_jaeger
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "9411:9411"
+      - "16686:16686"
+      - "14268:14268"
+    networks:
+      example_net:
+        aliases:
+          - example_jaeger
+
+  prometheus:
+    image: prom/prometheus:v2.42.0
+    container_name: example_prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/config.yml:/etc/prometheus/config.yml
+    networks:
+      example_net:
+        aliases:
+          - example_prometheus
+
+  grafana:
+    image: grafana/grafana:9.3.6
+    container_name: example_grafana
+    ports:
+      - 3100:3000
+    networks:
+      example_net:
+        aliases:
+          - example_grafana
+
+volumes:
+  prometheus:
+
+networks:
+  example_net:
