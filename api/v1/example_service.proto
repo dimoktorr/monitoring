@@ -6,10 +6,19 @@ option go_package = "github.com/dimoktorr/monitoring/pkg/api/v1";
 
 service ExampleService {
   rpc GetProduct(GetRequest) returns (GetResponse) {};
+  rpc Pay(PayRequest) returns (PayResponse) {};
 }
 
 message GetRequest {
   int32 id = 1;
+}
+
+message PayRequest {
+  int32 product_id = 1;
+}
+
+message PayResponse {
+  string status = 1;
 }
 
 message GetResponse{

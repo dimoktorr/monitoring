@@ -14,17 +14,20 @@ type Service struct {
 	metrics Metrics
 	repo    Repository
 	storage Storage
+	gateway Gateway
 }
 
 func New(
 	metrics Metrics,
 	repo Repository,
 	storage Storage,
+	gateway Gateway,
 ) *Service {
 	return &Service{
 		metrics: metrics,
 		repo:    repo,
 		storage: storage,
+		gateway: gateway,
 	}
 }
 
@@ -32,7 +35,7 @@ func (s *Service) GetProduct(ctx context.Context, productId int) (*domain.Produc
 	ctx, span := startTracerSpan(ctx, "GetProduct")
 	defer span.End()
 
-	span.AddEvent("Service", trace.WithAttributes(
+	span.AddEvent("", trace.WithAttributes(
 		attribute.Int("id_product", productId),
 		attribute.String("request_id", requestid.FromContext(ctx)),
 	))
@@ -40,12 +43,6 @@ func (s *Service) GetProduct(ctx context.Context, productId int) (*domain.Produc
 	product, err := s.repo.GetProduct(ctx, productId)
 	if err != nil {
 		log.Default().Println("error get product", err, "request_id", requestid.FromContext(ctx))
-
-		span.RecordError(err, trace.WithAttributes(
-			attribute.Int("id_product", productId),
-			attribute.String("request_id", requestid.FromContext(ctx)),
-		))
-
 		return nil, err
 	}
 
@@ -54,6 +51,29 @@ func (s *Service) GetProduct(ctx context.Context, productId int) (*domain.Produc
 	return product, nil
 }
 
+func (s *Service) PayProduct(ctx context.Context, productId int) (string, error) {
+	ctx, span := startTracerSpan(ctx, "PayProduct")
+	defer span.End()
+
+	span.AddEvent("", trace.WithAttributes(
+		attribute.Int("id_product", productId),
+		attribute.String("request_id", requestid.FromContext(ctx)),
+	))
+
+	product, err := s.repo.GetProduct(ctx, productId)
+	if err != nil {
+		log.Default().Println("error get product", err, "request_id", requestid.FromContext(ctx))
+		return "", err
+	}
+
+	status, payErr := s.gateway.Pay(ctx, product.Price)
+	if payErr != nil {
+		return "", payErr
+	}
+
+	return status, nil
+}
+
 func startTracerSpan(ctx context.Context, spanName string) (context.Context, trace.Span) {
-	return otel.Tracer("apiExampleV1").Start(ctx, "apiV1."+spanName)
+	return otel.Tracer("service").Start(ctx, "serviceV1."+spanName)
 }

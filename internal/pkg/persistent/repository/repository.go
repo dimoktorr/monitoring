@@ -102,5 +102,5 @@ func (r *Repository) QueryOne(ctx context.Context, dst interface{}, query string
 }
 
 func startTracerSpan(ctx context.Context, spanName string) (context.Context, trace.Span) {
-	return otel.Tracer("apiExampleV1").Start(ctx, "apiV1."+spanName)
+	return otel.Tracer("postgres").Start(ctx, "repository."+spanName)
 }

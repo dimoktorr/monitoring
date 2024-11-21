@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ExampleService_GetProduct_FullMethodName = "/example.grpc.api.v1.ExampleService/GetProduct"
+	ExampleService_Pay_FullMethodName        = "/example.grpc.api.v1.ExampleService/Pay"
 )
 
 // ExampleServiceClient is the client API for ExampleService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ExampleServiceClient interface {
 	GetProduct(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	Pay(ctx context.Context, in *PayRequest, opts ...grpc.CallOption) (*PayResponse, error)
 }
 
 type exampleServiceClient struct {
@@ -47,11 +49,22 @@ func (c *exampleServiceClient) GetProduct(ctx context.Context, in *GetRequest, o
 	return out, nil
 }
 
+func (c *exampleServiceClient) Pay(ctx context.Context, in *PayRequest, opts ...grpc.CallOption) (*PayResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PayResponse)
+	err := c.cc.Invoke(ctx, ExampleService_Pay_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ExampleServiceServer is the server API for ExampleService service.
 // All implementations must embed UnimplementedExampleServiceServer
 // for forward compatibility.
 type ExampleServiceServer interface {
 	GetProduct(context.Context, *GetRequest) (*GetResponse, error)
+	Pay(context.Context, *PayRequest) (*PayResponse, error)
 	mustEmbedUnimplementedExampleServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedExampleServiceServer struct{}
 
 func (UnimplementedExampleServiceServer) GetProduct(context.Context, *GetRequest) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProduct not implemented")
+}
+func (UnimplementedExampleServiceServer) Pay(context.Context, *PayRequest) (*PayResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Pay not implemented")
 }
 func (UnimplementedExampleServiceServer) mustEmbedUnimplementedExampleServiceServer() {}
 func (UnimplementedExampleServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +120,24 @@ func _ExampleService_GetProduct_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ExampleService_Pay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExampleServiceServer).Pay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExampleService_Pay_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExampleServiceServer).Pay(ctx, req.(*PayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ExampleService_ServiceDesc is the grpc.ServiceDesc for ExampleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var ExampleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProduct",
 			Handler:    _ExampleService_GetProduct_Handler,
+		},
+		{
+			MethodName: "Pay",
+			Handler:    _ExampleService_Pay_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

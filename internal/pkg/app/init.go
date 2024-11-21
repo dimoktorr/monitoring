@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dimoktorr/monitoring/internal/app"
 	"github.com/dimoktorr/monitoring/internal/pkg/api"
+	"github.com/dimoktorr/monitoring/internal/pkg/getaway"
 	"github.com/dimoktorr/monitoring/internal/pkg/metrics"
 	"github.com/dimoktorr/monitoring/internal/pkg/persistent/repository"
 	"github.com/dimoktorr/monitoring/internal/pkg/persistent/storage"
@@ -95,10 +96,13 @@ func (a *App) newService(
 	repo *repository.Repository,
 	storageClient *storage.Storage,
 ) {
+	gatewayClient := getaway.NewGetaway(metrics)
+
 	a.service = app.New(
 		metrics,
 		repo,
 		storageClient,
+		gatewayClient,
 	)
 }
 

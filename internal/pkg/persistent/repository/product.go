@@ -12,7 +12,7 @@ func (r *Repository) GetProduct(ctx context.Context, id int) (*domain.Product, e
 	ctx, span := startTracerSpan(ctx, "GetProduct")
 	defer span.End()
 
-	span.AddEvent("Repository", trace.WithAttributes(
+	span.AddEvent("", trace.WithAttributes(
 		attribute.Int("id_product", id),
 		attribute.String("request_id", requestid.FromContext(ctx)),
 	))
